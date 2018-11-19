@@ -9,6 +9,9 @@
 #######################################################################
 ?> 
 <?php
+
+// obtener datos del equipo como ip, host, servidor y pagina actual.
+
 $nombre_host = gethostbyaddr($_SERVER['REMOTE_ADDR']); 
 $ipaddress = $_SERVER['REMOTE_ADDR']; 
 $paginaactual = $_SERVER['PHP_SELF'];
