@@ -10,6 +10,12 @@
 ?> 
 
 <?php
+// obtener datos del equipo como ip, host, servidor y pagina actual.
+
+$nombre_host = gethostbyaddr($_SERVER['REMOTE_ADDR']); 
+$ipaddress = $_SERVER['REMOTE_ADDR']; 
+$paginaactual = $_SERVER['PHP_SELF'];
+$servidor = $_SERVER['HTTP_HOST'];
 #MySQL
 # require("conn/conexion_mysql.php");
 #SQLServer
@@ -314,12 +320,14 @@ $pagina = "supervisor.php";
 	 <?php
 	sqlsrv_free_stmt($resultados_final);  
 	sqlsrv_close( $conn2 );
+	$url = "http://".$servidor."/casos_coord/agente.php";
 	?>
 
 
 	<div class="container">
 		<span class="float-center">						
 			Ultima Actualizacion. : <strong> <?php $ultimaAct = date('d-m-Y H:i:s'); echo $ultimaAct;  ?></strong>  <br><br>
+			<?php //echo '<b> Puede ingresar al sistema web mediante el siguiente link y actualizar el estado de la gestión: <a href="'.$url.'" target="_blank"><i class="fa fa-external-link" style="font-size:24px"></i></a> </b> <br>  '; ?>
 		</span>
 	</div>
 <hr/>

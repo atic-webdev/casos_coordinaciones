@@ -22,6 +22,9 @@ $servidor = $_SERVER['HTTP_HOST'];
 #SQLServer
 require("conn/conexion.php");
 require('info.php');
+require('class/class.phpmailer.php');
+require('class/class.smtp.php');
+require('class/PHPMailerAutoload.php');
 
 //session_start();
 $cookie_u= "usuario";
@@ -76,6 +79,94 @@ if ( (isset($_GET['txtSocio']))    ) #AND  (isset($_POST['txtTelefonos']))  AND 
 {
 	
 	$procesado = true;
+
+	$conn_insert = conexion_bd($servidor_bd, $usuario_bd, $password_bd, $basedatos); 
+	$sql_insert  = " INSERT INTO casos_especiales (socio, telefonos, descripcion, fecha_agenda, fecha_creacion,  agente_asignado, estado)  
+		VALUES ('".$_GET['txtSocio']."','".$_GET['txtTelefonos']."','".$_GET['txtDescripcion']."','".$_GET['txtFechaAgendaT']."',getdate(),'".$_GET['txtAsignado']."','Asignada')			
+					";
+	$resultados_insert = sqlsrv_query($conn_insert , $sql_insert ); 
+	if ($resultados_insert  == FALSE) die(FormatErrors(sqlsrv_errors())); 	//Error handling 
+
+	# envio de correo al agente
+
+	$url = "http://".$servidor."/casos_coord/agente.php";
+	############## Envio del formulario por email  ################
+	header("Content-Type: text/html;charset=utf-8");
+	$asunto = "Nuevo Caso Especial Asignado";
+	
+	
+	$comentarios = "Estimado: ".$nombre." <br> Un nuevo caso especial para coordinar ha sido asignado a usted. ";
+	
+	# $errormsj = printErrors($erroresSQL);
+	$mensaje = ' 
+	<html> 
+	<head> 
+	   <title>'.$asunto.' </title> 
+	</head> 
+	<body> 
+	<h1>'.$asunto.'</h1> 
+	<hr />
+	<p> 
+	'.$comentarios.' <br> <br> <br>
+	 <u>Socio:</u> '.$_GET['txtSocio'].' <br> 
+	 <u>Telefonos:</u> '.$_GET['txtTelefonos'].'  <br> 
+	 <u>Comentarios:</u> '.$_GET['txtDescripcion'].' <br>
+	 <u>Fecha Agenda Tigo:</u> '.$_GET['txtFechaAgendaT'].' <br>
+	 <u>Agente:</u> '.$_GET['txtAsignado'].' <br>
+	 <b> Puede ingresar <a href="'.$url.'" target="_blank"> -> AQUI <- </a> al sistema web mediante el siguiente <a href="'.$url.'" target="_blank"> link </a>y actualizar el estado de la gestión. </b><br>
+	</p> 
+	<hr />
+	</body> 
+	</html> 
+	'; 					
+
+	$de = 'sistemas@unoauno.net';
+	$para = 'sabrina.murillo@unoauno.net';
+	$copia = ''; # $copia = '';
+	$copiaoculta = '';	
+	$servidor = 'mail.unoauno.net';
+	$puerto = 587;		
+	$usuario = 'sistemas@unoauno.net';
+	$clave = 'soloPARAingresar99';
+	
+	$NombreEnvio = "Casos Especiales Coordinaciones";
+	
+	$mail = new PHPMailer();
+	$mail->IsSMTP();
+	$mail->SMTPAuth = true;
+	$mail->CharSet = 'UTF-8';
+	$mail->Host = $servidor; // SMTP a utilizar. Por ej. smtp.elserver.com
+	$mail->Username = $usuario; // Correo completo a utilizar
+	$mail->Password = $clave; // Contraseña
+	$mail->Port = $puerto; // Puerto a utilizar
+	$mail->From = $de; // Desde donde enviamos (Para mostrar)
+	$mail->FromName = $NombreEnvio;
+	$mail->AddAddress($para); // Esta es la dirección a donde enviamos
+	if (trim($copia) != "")
+	{
+		$mail->AddCC($copia); // Copia
+	}
+	if (trim($copiaoculta) != "")
+	{
+		$mail->AddBCC($copiaoculta); // Copia oculta
+	}
+	$mail->IsHTML(true); // El correo se envía como HTML
+	$mail->Subject = $asunto; // Este es el titulo del email.
+
+	$mail->Body = $mensaje; // Mensaje a enviar 
+	#$mail->AltBody = 'Asunto: '.$asunto.' \r\n  Comentarios: '.$comentarios.' \r\n  Solicitante: '.$nombre ; // Texto sin html
+	#$mail->AddAttachment("imagenes/imagen.jpg", "imagen.jpg");
+	$mail->CharSet = 'UTF-8';
+	$exito = $mail->Send(); // Envía el correo.
+
+	if($exito){
+	//echo 'El correo fue enviado correctamente.';
+	}else{
+	echo 'Hubo un inconveniente. Contacta a un administrador.';
+	}
+	############## FIN Envio del formulario por email  ################ 
+
+
 }
 else{ $procesado = false; }
 
@@ -135,76 +226,76 @@ function FormatErrors( $errors )
 	<div class="container mt-3">
 		<?php
 		if ($procesado == false)
-		{
-		?>
-		<div class="container">			
-			<form action="agregar.php">
-				
-				<div class="form-group">
-					<label for="txtSocio">Socio:</label>
-					<input type="text" class="form-control form-control-sm" id="txtSocio" placeholder="# Socio" name="txtSocio" required>
-				</div>					
-				
-				<div class="form-group">
-					<label for="txtTelefonos">Telefonos:</label>
-					<input type="text" class="form-control form-control-sm" id="txtTelefonos" placeholder="# Telefonos" name="txtTelefonos">
-				</div>
-				
-				<div class="form-group">
-					<label for="txtDescripcion">Descripcion:</label>
-					<textarea class="form-control form-control-sm" rows="2" id="txtDescripcion" name="txtDescripcion"></textarea>
-				</div>				
-				
-				<div class="form-group">
-					<label for="txtFechaAgendaT">Fecha Agenda Tigo:</label>
-					<input type="date" class="form-control form-control-sm" id="txtFechaAgendaT" placeholder="# Telefonos" 
-					name="txtFechaAgendaT" value="<?php $fechaAgenda = date("Y-m-d"); echo $fechaAgenda;  ?>">
-				</div>
-				
+			{
+			?>
+			<div class="container">			
+				<form action="agregar.php">
+					
+					<div class="form-group">
+						<label for="txtSocio">Socio:</label>
+						<input type="text" class="form-control form-control-sm" id="txtSocio" placeholder="# Socio" name="txtSocio" required>
+					</div>					
+					
+					<div class="form-group">
+						<label for="txtTelefonos">Telefonos:</label>
+						<input type="text" class="form-control form-control-sm" id="txtTelefonos" placeholder="# Telefonos" name="txtTelefonos">
+					</div>
+					
+					<div class="form-group">
+						<label for="txtDescripcion">Descripcion:</label>
+						<textarea class="form-control form-control-sm" rows="2" id="txtDescripcion" name="txtDescripcion"></textarea>
+					</div>				
+					
+					<div class="form-group">
+						<label for="txtFechaAgendaT">Fecha Agenda Tigo:</label>
+						<input type="date" class="form-control form-control-sm" id="txtFechaAgendaT" placeholder="# Telefonos" 
+						name="txtFechaAgendaT" value="<?php $fechaAgenda = date("Y-m-d"); echo $fechaAgenda;  ?>">
+					</div>
+					
 
-				<div class="form-group ">
-				<label for="txtAsignado" >Agente</label>						
-						<select class="form-control form-control-sm" id="txtAsignado" name="txtAsignado" required>
-							<option value="" selected>Seleccione un agente..</option>
-							<?php while ($row_cbo_agente = sqlsrv_fetch_array($resultados_cbo_agente, SQLSRV_FETCH_ASSOC)) { 
-							echo "<OPTION VALUE=".$row_cbo_agente['teleoperador_user']."> ".$row_cbo_agente['Teleoperador_Descripcion']." </OPTION>";
-							}  
-							sqlsrv_free_stmt($resultados_cbo_agente); 
-							sqlsrv_close( $conn_cbo_agente );	?>			
-						</select>
-				</div>
-				
-				
-				<button type="submit" class="btn btn-primary">Agregar</button>
-			</form>
-		</div>
-		
-		<?php
-		}
-		else
-		{
-			echo '
-			<div class="alert alert-success  alert-dismissible ">
-				<button type="button" class="close btn-sm" data-dismiss="alert">&times;</button>
-					Registro agregado correctamente. Puede cerrar la ventana.</strong>
+					<div class="form-group ">
+					<label for="txtAsignado" >Agente</label>						
+							<select class="form-control form-control-sm" id="txtAsignado" name="txtAsignado" required>
+								<option value="" selected>Seleccione un agente..</option>
+								<?php while ($row_cbo_agente = sqlsrv_fetch_array($resultados_cbo_agente, SQLSRV_FETCH_ASSOC)) { 
+								echo "<OPTION VALUE=".$row_cbo_agente['teleoperador_user']."> ".$row_cbo_agente['Teleoperador_Descripcion']." </OPTION>";
+								}  
+								sqlsrv_free_stmt($resultados_cbo_agente); 
+								sqlsrv_close( $conn_cbo_agente );	?>			
+							</select>
+					</div>
+					
+					
+					<button type="submit" class="btn btn-primary">Agregar</button>
+				</form>
 			</div>
-			';
+			
+			<?php
+			}
+			else
+			{
+				echo '
+				<div class="alert alert-success  alert-dismissible ">
+					<button type="button" class="close btn-sm" data-dismiss="alert">&times;</button>
+						Registro agregado correctamente. Puede cerrar la ventana.</strong>
+				</div>
+				';
 
-			echo '<br>
-			<div class="alert alert-info ">				
-				Socio:<strong> '.$_GET['txtSocio'].' 
-				</strong><br>Telefonos:<strong> '.$_GET['txtTelefonos'].' 
-				</strong><br> Descripcion:<strong>'.$_GET['txtDescripcion'].'
-				</strong><br>Fecha:<strong> '.$_GET['txtFechaAgendaT'].'
-				</strong><br>Agente: <strong>'.$_GET['txtAsignado'].'
-				.</strong>
-			</div>
-			';
-			# -----------------------  Envio de correo --------------------
+				echo '<br>
+				<div class="alert alert-info ">				
+					Socio:<strong> '.$_GET['txtSocio'].' 
+					</strong><br>Telefonos:<strong> '.$_GET['txtTelefonos'].' 
+					</strong><br> Descripcion:<strong>'.$_GET['txtDescripcion'].'
+					</strong><br>Fecha:<strong> '.$_GET['txtFechaAgendaT'].'
+					</strong><br>Agente: <strong>'.$_GET['txtAsignado'].'
+					.</strong>
+				</div>
+				';
+				# -----------------------  Envio de correo --------------------
 
 
-			# -----------------------  Envio de correo --------------------
-		}
+				# -----------------------  Envio de correo --------------------
+			}
 		?>
 	</div>
 	<hr/> <!-- ___________________________________________________________________ -->
