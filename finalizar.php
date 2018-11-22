@@ -64,40 +64,44 @@ if ($usuario == "")
 }
 
 
+# --------------------------Queries-------------------------
+#dropdown combo agentes
+$conn_cbo_agente = conexion_bd($servidor_bd, $usuario_bd, $password_bd, $basedatos); 
+$sql_cbo_agente = " select teleoperador_user, Teleoperador_Descripcion, teleoperador_email, Teleoperador_Descripcion from Teleoperador where teleoperador_perfil = 'Agente' AND teleoperador_perfil != 'null' ";
+$resultados_cbo_agente= sqlsrv_query($conn_cbo_agente, $sql_cbo_agente); 
+if ($resultados_cbo_agente == FALSE) die(FormatErrors(sqlsrv_errors())); 	//Error handling 
+//$row_agente = sqlsrv_fetch_array($resultados_agente, SQLSRV_FETCH_ASSOC);
 
 
+# --------------------------Queries End-------------------------
 
-if ( (isset($_GET['txtID']))   AND (isset($_GET['txtBitacora']))  ) #AND  (isset($_POST['txtTelefonos']))  AND  (isset($_POST['txtDescripcion'])) AND  (isset($_POST['txtFechaAgendaT']))
+if ( (isset($_GET['txtSocio']))    ) #AND  (isset($_POST['txtTelefonos']))  AND  (isset($_POST['txtDescripcion'])) AND  (isset($_POST['txtFechaAgendaT']))
 {
 	
 	$procesado = true;
-	$registro = $_GET['txtID'];
-	$conn_update = conexion_bd($servidor_bd, $usuario_bd, $password_bd, $basedatos); 
-	$sql_update  = " UPDATE casos_especiales SET  bitacora = '".$_GET['txtBitacora']."', fecha_finalizado = getdate(), estado = 'FInalizada'  WHERE id = '".$_GET['txtID']."' AND agente_asignado = '".$usuario."' ";
-	$resultados_update = sqlsrv_query($conn_update , $sql_update ); 
-	if ($resultados_update  == FALSE) die(FormatErrors(sqlsrv_errors())); 	//Error handling 
 
-
-	$conn_agente = conexion_bd($servidor_bd, $usuario_bd, $password_bd, $basedatos); 
-	$sql_agente = " SELECT teleoperador_user, Teleoperador_Descripcion, teleoperador_email, Teleoperador_Descripcion from Teleoperador where teleoperador_user = '".$usuario."'  ";
-	$resultados_agente= sqlsrv_query($conn_agente, $sql_agente); 
-	if ($resultados_agente == FALSE) die(FormatErrors(sqlsrv_errors())); 	//Error handling 
-	$row_agente = sqlsrv_fetch_array($resultados_agente, SQLSRV_FETCH_ASSOC);
-
-	$conn_casos = conexion_bd($servidor_bd, $usuario_bd, $password_bd, $basedatos); 
-	$sql_casos = " SELECT * from casos_especiales where id = ".$registro."  ";
-	$resultados_casos= sqlsrv_query($conn_casos, $sql_casos); 
-	if ($resultados_casos == FALSE) die(FormatErrors(sqlsrv_errors())); 	//Error handling 
-	$row_casos = sqlsrv_fetch_array($resultados_casos, SQLSRV_FETCH_ASSOC);
-
+	$conn_insert = conexion_bd($servidor_bd, $usuario_bd, $password_bd, $basedatos); 
+	$sql_insert  = " INSERT INTO casos_especiales (socio, telefonos, descripcion, fecha_agenda, fecha_creacion,  agente_asignado, estado)  
+		VALUES ('".$_GET['txtSocio']."','".$_GET['txtTelefonos']."','".$_GET['txtDescripcion']."','".$_GET['txtFechaAgendaT']."',getdate(),'".$_GET['txtAsignado']."','Asignada')			
+					";
+	$resultados_insert = sqlsrv_query($conn_insert , $sql_insert ); 
+	if ($resultados_insert  == FALSE) die(FormatErrors(sqlsrv_errors())); 	//Error handling 
 
 	# envio de correo al agente
 
 	$url = "http://".$servidor."/casos_coord/agente.php";
 	############## Envio del formulario por email  ################
 	header("Content-Type: text/html;charset=utf-8");
-	$asunto = "Caso Especial Finalizado # ".$row_casos['socio'].".";
-	$comentarios = "El caso ha sido Finalizado. ";
+	$asunto = "Nuevo Caso Especial Asignado";
+	
+	$conn_agente = conexion_bd($servidor_bd, $usuario_bd, $password_bd, $basedatos); 
+	$sql_agente = " select teleoperador_user, Teleoperador_Descripcion, teleoperador_email, Teleoperador_Descripcion from Teleoperador where teleoperador_user = '".$_GET['txtAsignado']."'  ";
+	$resultados_agente= sqlsrv_query($conn_agente, $sql_agente); 
+	if ($resultados_agente == FALSE) die(FormatErrors(sqlsrv_errors())); 	//Error handling 
+	$row_agente = sqlsrv_fetch_array($resultados_agente, SQLSRV_FETCH_ASSOC);
+
+
+	$comentarios = "Estimado (a): ".$row_agente['Teleoperador_Descripcion']." <br> Un nuevo caso especial para coordinar ha sido asignado a usted. ";
 	
 	# $errormsj = printErrors($erroresSQL);
 	$mensaje = ' 
@@ -110,11 +114,12 @@ if ( (isset($_GET['txtID']))   AND (isset($_GET['txtBitacora']))  ) #AND  (isset
 	<hr />
 	<p> 
 	'.$comentarios.' <br> <br> <br>
-	 <u>Socio:</u> '.$row_casos['socio'].' <br> 	 
-	 <u>Fecha Agenda Tigo:</u> '.$row_casos['socio'].' <br>
-	 <u>Fecha Finalizado:</u> '.date().' <br>
+	 <u>Socio:</u> '.$_GET['txtSocio'].' <br> 
+	 <u>Telefonos:</u> '.$_GET['txtTelefonos'].'  <br> 
+	 <u>Comentarios:</u> '.$_GET['txtDescripcion'].' <br>
+	 <u>Fecha Agenda Tigo:</u> '.$_GET['txtFechaAgendaT'].' <br>
 	 <u>Agente:</u> '.$row_agente['Teleoperador_Descripcion'].' <br>
-	 <<br>
+	 <b> Puede ingresar <a href="'.$url.'" target="_blank"> -> AQUI <- </a> al sistema web mediante el siguiente <a href="'.$url.'" target="_blank"> link </a>y actualizar el estado de la gestión. </b><br>
 	</p> 
 	<hr />
 	</body> 
@@ -122,12 +127,11 @@ if ( (isset($_GET['txtID']))   AND (isset($_GET['txtBitacora']))  ) #AND  (isset
 	'; 					
 
 	$de = 'sistemas@unoauno.net';
-	$para = 'coordinacion_supervision@unoauno.net';
-	$copia = $row_agente['teleoperador_email'];
-	$copiaoculta = 'allan.campos@unoauno.net';
-	#$para = '';	 
-	# $copia = '';	
-	#$copiaoculta = '';	
+	$para = $row_agente['teleoperador_email'];
+	#$para = 'allan.campos@unoauno.net';
+	$copia = 'coordinacion_supervision@unoauno.net'; 
+	# $copia = '';
+	$copiaoculta = 'allan.campos@unoauno.net';	
 	$servidor = 'mail.unoauno.net';
 	$puerto = 587;		
 	$usuario = 'sistemas@unoauno.net';
@@ -172,18 +176,7 @@ if ( (isset($_GET['txtID']))   AND (isset($_GET['txtBitacora']))  ) #AND  (isset
 
 
 }
-else
-{ 
-	$procesado = false; 
-	# --------------------------Queries-------------------------
-	$conn = conexion_bd($servidor_bd, $usuario_bd, $password_bd, $basedatos); 
-	$sql = " select * from casos_especiales WHERE id = ".$_GET['finalizar']."  AND  agente_asignado = '".$usuario."' ";
-	#echo "<br> SQLver datos: ".$sql ;
-	$resultados= sqlsrv_query($conn, $sql); 
-	if ($resultados == FALSE) die(FormatErrors(sqlsrv_errors())); 	//Error handling 
-	$row = sqlsrv_fetch_array($resultados, SQLSRV_FETCH_ASSOC);
-
-}
+else{ $procesado = false; }
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -208,7 +201,7 @@ function FormatErrors( $errors )
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <title>Finalizar - Casos Especiales - </title>
+  <title>Agregar - Casos Especiales - </title>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <!-- font fa -->
@@ -234,7 +227,7 @@ function FormatErrors( $errors )
 	</div>
 
 	<div jumbotron text-center class="bg-dark text-white">
-		<h3 align='center'> Finalizar Caso Especial </h3>
+		<h3 align='center'> Agregar Nuevo Registro </h3>
 	</div>
 	<hr/> <!-- ___________________________________________________________________ -->
 
@@ -244,24 +237,44 @@ function FormatErrors( $errors )
 			{
 			?>
 			<div class="container">			
-				<form action="finalizar.php">
-					<input type="hidden"  id="txtID" placeholder="<?php echo $row['id']; ?>" name="txtID">
+				<form action="agregar.php">
+					
 					<div class="form-group">
 						<label for="txtSocio">Socio:</label>
-						<input type="text" class="form-control form-control-sm" id="txtSocio" placeholder="<?php echo $row['socio']; ?>" name="txtSocio" readonly>
+						<input type="text" class="form-control form-control-sm" id="txtSocio" placeholder="# Socio" name="txtSocio" required>
 					</div>					
 					
-					<div class="form-group ">
-					<label for="txtAsignado" >Agente:</label>						
-					<input type="text" class="form-control form-control-sm" id="txtAsignado" placeholder="<?php echo $row['agente_asignado']; ?>" name="txtAsignado" readonly>
+					<div class="form-group">
+						<label for="txtTelefonos">Telefonos:</label>
+						<input type="text" class="form-control form-control-sm" id="txtTelefonos" placeholder="# Telefonos" name="txtTelefonos">
 					</div>
 					
 					<div class="form-group">
-						<label for="txtBitacora">Bitacora:</label>
-						<textarea class="form-control form-control-sm" rows="3" id="txtBitacora" name="txtBitacora"></textarea>
-					</div>		
+						<label for="txtDescripcion">Descripcion:</label>
+						<textarea class="form-control form-control-sm" rows="2" id="txtDescripcion" name="txtDescripcion"></textarea>
+					</div>				
+					
+					<div class="form-group">
+						<label for="txtFechaAgendaT">Fecha Agenda Tigo:</label>
+						<input type="date" class="form-control form-control-sm" id="txtFechaAgendaT" placeholder="# Telefonos" 
+						name="txtFechaAgendaT" value="<?php $fechaAgenda = date("Y-m-d"); echo $fechaAgenda;  ?>">
+					</div>
+					
 
-					<button type="submit" class="btn btn-primary">Finalizar</button>
+					<div class="form-group ">
+					<label for="txtAsignado" >Agente</label>						
+							<select class="form-control form-control-sm" id="txtAsignado" name="txtAsignado" required>
+								<option value="" selected>Seleccione un agente..</option>
+								<?php while ($row_cbo_agente = sqlsrv_fetch_array($resultados_cbo_agente, SQLSRV_FETCH_ASSOC)) { 
+								echo "<OPTION VALUE=".$row_cbo_agente['teleoperador_user']."> ".$row_cbo_agente['Teleoperador_Descripcion']." </OPTION>";
+								}  
+								sqlsrv_free_stmt($resultados_cbo_agente); 
+								sqlsrv_close( $conn_cbo_agente );	?>			
+							</select>
+					</div>
+					
+					
+					<button type="submit" class="btn btn-primary">Agregar</button>
 				</form>
 			</div>
 			
@@ -272,16 +285,18 @@ function FormatErrors( $errors )
 				echo '
 				<div class="alert alert-success  alert-dismissible ">
 					<button type="button" class="close btn-sm" data-dismiss="alert">&times;</button>
-						Registro Finalizado correctamente. Puede cerrar la ventana.</strong>
+						Registro agregado correctamente. Puede cerrar la ventana.</strong>
 				</div>
 				';
 
 				echo '<br>
 				<div class="alert alert-info ">				
-					Socio:<strong> '.$_GET['txtSocio'].' </strong>
-					<br>Agente: <strong>'.$_GET['txtAsignado'].'.</strong>
-					<br>Bitacora: <strong>'.$_GET['txtBitacora'].'.</strong>
-					<br>Fecha Finalizado: <strong>'.date().'.</strong>
+					Socio:<strong> '.$_GET['txtSocio'].' 
+					</strong><br>Telefonos:<strong> '.$_GET['txtTelefonos'].' 
+					</strong><br> Descripcion:<strong>'.$_GET['txtDescripcion'].'
+					</strong><br>Fecha:<strong> '.$_GET['txtFechaAgendaT'].'
+					</strong><br>Agente: <strong>'.$_GET['txtAsignado'].'
+					.</strong>
 				</div>
 				';
 				# -----------------------  Envio de correo --------------------
