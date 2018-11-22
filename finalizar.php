@@ -9,6 +9,9 @@
 #######################################################################
 ?> 
 <?php
+
+// obtener datos del equipo como ip, host, servidor y pagina actual.
+
 $nombre_host = gethostbyaddr($_SERVER['REMOTE_ADDR']); 
 $ipaddress = $_SERVER['REMOTE_ADDR']; 
 $paginaactual = $_SERVER['PHP_SELF'];
@@ -19,6 +22,9 @@ $servidor = $_SERVER['HTTP_HOST'];
 #SQLServer
 require("conn/conexion.php");
 require('info.php');
+require('class/class.phpmailer.php');
+require('class/class.smtp.php');
+require('class/PHPMailerAutoload.php');
 
 //session_start();
 $cookie_u= "usuario";
@@ -57,4 +63,242 @@ if ($usuario == "")
 	exit;
 }
 
+
+
+
+
+if ( (isset($_GET['txtID']))   AND (isset($_GET['txtBitacora']))  ) #AND  (isset($_POST['txtTelefonos']))  AND  (isset($_POST['txtDescripcion'])) AND  (isset($_POST['txtFechaAgendaT']))
+{
+	
+	$procesado = true;
+	$registro = $_GET['txtID'];
+	$conn_update = conexion_bd($servidor_bd, $usuario_bd, $password_bd, $basedatos); 
+	$sql_update  = " UPDATE casos_especiales SET  bitacora = '".$_GET['txtBitacora']."', fecha_finalizado = getdate(), estado = 'FInalizada'  WHERE id = '".$_GET['txtID']."' AND agente_asignado = '".$usuario."' ";
+	$resultados_update = sqlsrv_query($conn_update , $sql_update ); 
+	if ($resultados_update  == FALSE) die(FormatErrors(sqlsrv_errors())); 	//Error handling 
+
+
+	$conn_agente = conexion_bd($servidor_bd, $usuario_bd, $password_bd, $basedatos); 
+	$sql_agente = " SELECT teleoperador_user, Teleoperador_Descripcion, teleoperador_email, Teleoperador_Descripcion from Teleoperador where teleoperador_user = '".$usuario."'  ";
+	$resultados_agente= sqlsrv_query($conn_agente, $sql_agente); 
+	if ($resultados_agente == FALSE) die(FormatErrors(sqlsrv_errors())); 	//Error handling 
+	$row_agente = sqlsrv_fetch_array($resultados_agente, SQLSRV_FETCH_ASSOC);
+
+	$conn_casos = conexion_bd($servidor_bd, $usuario_bd, $password_bd, $basedatos); 
+	$sql_casos = " SELECT * from casos_especiales where id = ".$registro."  ";
+	$resultados_casos= sqlsrv_query($conn_casos, $sql_casos); 
+	if ($resultados_casos == FALSE) die(FormatErrors(sqlsrv_errors())); 	//Error handling 
+	$row_casos = sqlsrv_fetch_array($resultados_casos, SQLSRV_FETCH_ASSOC);
+
+
+	# envio de correo al agente
+
+	$url = "http://".$servidor."/casos_coord/agente.php";
+	############## Envio del formulario por email  ################
+	header("Content-Type: text/html;charset=utf-8");
+	$asunto = "Caso Especial Finalizado # ".$row_casos['socio'].".";
+	$comentarios = "El caso ha sido Finalizado. ";
+	
+	# $errormsj = printErrors($erroresSQL);
+	$mensaje = ' 
+	<html> 
+	<head> 
+	   <title>'.$asunto.' </title> 
+	</head> 
+	<body> 
+	<h1>'.$asunto.'</h1> 
+	<hr />
+	<p> 
+	'.$comentarios.' <br> <br> <br>
+	 <u>Socio:</u> '.$row_casos['socio'].' <br> 	 
+	 <u>Fecha Agenda Tigo:</u> '.$row_casos['socio'].' <br>
+	 <u>Fecha Finalizado:</u> '.date().' <br>
+	 <u>Agente:</u> '.$row_agente['Teleoperador_Descripcion'].' <br>
+	 <<br>
+	</p> 
+	<hr />
+	</body> 
+	</html> 
+	'; 					
+
+	$de = 'sistemas@unoauno.net';
+	$para = 'coordinacion_supervision@unoauno.net';
+	$copia = $row_agente['teleoperador_email'];
+	$copiaoculta = 'allan.campos@unoauno.net';
+	#$para = '';	 
+	# $copia = '';	
+	#$copiaoculta = '';	
+	$servidor = 'mail.unoauno.net';
+	$puerto = 587;		
+	$usuario = 'sistemas@unoauno.net';
+	$clave = 'soloPARAingresar99';
+	
+	$NombreEnvio = "Casos Especiales Coordinaciones";
+	
+	$mail = new PHPMailer();
+	$mail->IsSMTP();
+	$mail->SMTPAuth = true;
+	$mail->CharSet = 'UTF-8';
+	$mail->Host = $servidor; // SMTP a utilizar. Por ej. smtp.elserver.com
+	$mail->Username = $usuario; // Correo completo a utilizar
+	$mail->Password = $clave; // Contraseña
+	$mail->Port = $puerto; // Puerto a utilizar
+	$mail->From = $de; // Desde donde enviamos (Para mostrar)
+	$mail->FromName = $NombreEnvio;
+	$mail->AddAddress($para); // Esta es la dirección a donde enviamos
+	if (trim($copia) != "")
+	{
+		$mail->AddCC($copia); // Copia
+	}
+	if (trim($copiaoculta) != "")
+	{
+		$mail->AddBCC($copiaoculta); // Copia oculta
+	}
+	$mail->IsHTML(true); // El correo se envía como HTML
+	$mail->Subject = $asunto; // Este es el titulo del email.
+
+	$mail->Body = $mensaje; // Mensaje a enviar 
+	#$mail->AltBody = 'Asunto: '.$asunto.' \r\n  Comentarios: '.$comentarios.' \r\n  Solicitante: '.$nombre ; // Texto sin html
+	#$mail->AddAttachment("imagenes/imagen.jpg", "imagen.jpg");
+	$mail->CharSet = 'UTF-8';
+	$exito = $mail->Send(); // Envía el correo.
+
+	if($exito){
+	//echo 'El correo fue enviado correctamente.';
+	}else{
+	echo 'Hubo un inconveniente. Contacta a un administrador.';
+	}
+	############## FIN Envio del formulario por email  ################ 
+
+
+}
+else
+{ 
+	$procesado = false; 
+	# --------------------------Queries-------------------------
+	$conn = conexion_bd($servidor_bd, $usuario_bd, $password_bd, $basedatos); 
+	$sql = " select * from casos_especiales WHERE id = ".$_GET['finalizar']."  AND  agente_asignado = '".$usuario."' ";
+	#echo "<br> SQLver datos: ".$sql ;
+	$resultados= sqlsrv_query($conn, $sql); 
+	if ($resultados == FALSE) die(FormatErrors(sqlsrv_errors())); 	//Error handling 
+	$row = sqlsrv_fetch_array($resultados, SQLSRV_FETCH_ASSOC);
+
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+
+function FormatErrors( $errors ) 
+{ /* Display errors. */ 
+	echo "Error information: <br/>"; 
+	foreach ( $errors as $error ) 
+	{ 
+		echo "SQLSTATE: ".$error['SQLSTATE']."<br/>"; 
+		echo "Code: ".$error['code']."<br/>";
+		echo "Message: ".$error['message']."<br/>"; 
+		echo " - " . '<a href="javascript:history.back()">Volver</a>';
+	}
+}	
+
+//////////////////////////////////////////////////////////////////////////
+
 ?>
+
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <title>Finalizar - Casos Especiales - </title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- font fa -->
+  <link href="font-awesome/css/font-awesome.css" rel="stylesheet">  
+  <!-- CSS & JS-->
+	<link rel="stylesheet" href="css/bootstrap.min.css">  
+  <script src="jquery/3.3.1/jquery.min.js"></script>
+  <script src="popper/1.14.3/popper.min.js"></script>
+  <script src="js/bootstrap.min.js"></script>
+  <script src="js/funciones.js"></script>
+  
+  <!--
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css">  
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script> 
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js"></script> 
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js"></script> 
+  -->  
+</head>
+<body>
+	<div align="right">
+		<button type="button" class="btn btn-outline-primary btn-sm" onclick="cerraryrecargar();" title="Cerrar"><i style="font-size:25px" class="fa">&#xf2d3;</i></button>
+		
+	</div>
+
+	<div jumbotron text-center class="bg-dark text-white">
+		<h3 align='center'> Finalizar Caso Especial </h3>
+	</div>
+	<hr/> <!-- ___________________________________________________________________ -->
+
+	<div class="container mt-3">
+		<?php
+		if ($procesado == false)
+			{
+			?>
+			<div class="container">			
+				<form action="finalizar.php">
+					<input type="hidden"  id="txtID" placeholder="<?php echo $row['id']; ?>" name="txtID">
+					<div class="form-group">
+						<label for="txtSocio">Socio:</label>
+						<input type="text" class="form-control form-control-sm" id="txtSocio" placeholder="<?php echo $row['socio']; ?>" name="txtSocio" readonly>
+					</div>					
+					
+					<div class="form-group ">
+					<label for="txtAsignado" >Agente:</label>						
+					<input type="text" class="form-control form-control-sm" id="txtAsignado" placeholder="<?php echo $row['agente_asignado']; ?>" name="txtAsignado" readonly>
+					</div>
+					
+					<div class="form-group">
+						<label for="txtBitacora">Bitacora:</label>
+						<textarea class="form-control form-control-sm" rows="3" id="txtBitacora" name="txtBitacora"></textarea>
+					</div>		
+
+					<button type="submit" class="btn btn-primary">Finalizar</button>
+				</form>
+			</div>
+			
+			<?php
+			}
+			else
+			{
+				echo '
+				<div class="alert alert-success  alert-dismissible ">
+					<button type="button" class="close btn-sm" data-dismiss="alert">&times;</button>
+						Registro Finalizado correctamente. Puede cerrar la ventana.</strong>
+				</div>
+				';
+
+				echo '<br>
+				<div class="alert alert-info ">				
+					Socio:<strong> '.$_GET['txtSocio'].' </strong>
+					<br>Agente: <strong>'.$_GET['txtAsignado'].'.</strong>
+					<br>Bitacora: <strong>'.$_GET['txtBitacora'].'.</strong>
+					<br>Fecha Finalizado: <strong>'.date().'.</strong>
+				</div>
+				';
+				# -----------------------  Envio de correo --------------------
+
+
+				# -----------------------  Envio de correo --------------------
+			}
+		?>
+	</div>
+	<hr/> <!-- ___________________________________________________________________ -->
+
+	<script type="text/javascript"> 	
+		function cerraryrecargar() 
+		{ 
+			window.opener.document.location.reload();
+			self.close();			
+		} 
+	</script> 
+</body>
+</html>
