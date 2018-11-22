@@ -88,7 +88,7 @@ if ( (isset($_GET['txtID']))    )
 	$url = "http://".$servidor."/casos_coord/agente.php";
 	############## Envio del formulario por email  ################
 	header("Content-Type: text/html;charset=utf-8");	
-	$asunto = "Finalizado: Caso Especial del socio: ".$_GET['txtSocio']." ";
+	$asunto = "Finalizado: Caso Especial del socio - ".$_GET['txtSocio']." ";
 	$comentarios = "El caso ha sido Finalizado. ";
 	
 	# $errormsj = printErrors($erroresSQL);

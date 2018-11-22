@@ -137,7 +137,7 @@ $pagina = "agente.php";
 				</span>
     </div>
     <div class="col-6">
-			<h1 align='center'> <?php echo $nombre_proyecto; ?> </h1>		
+			<h1 align='center'> Agente <br> <?php echo $nombre_proyecto; ?> </h1>		
     </div>
     <div class="col">
 			<span class="float-center">
@@ -153,6 +153,19 @@ $pagina = "agente.php";
 	<span class="float-center">						
 		Autenticado como: <strong>   (<?php echo $usuario.")";   ?></strong>  <br><br>
 	</span>
+	<?php
+			if ( ($perfil == "TeamLeader") OR ($perfil == "Supervisor") )
+			{
+				echo '
+				
+				<span class="float-center">						
+				<a href="supervisor.php"  data-toggle="tooltip" title="Modulo Supervisor"> <i class="fa fa-user-circle" style="font-size:24px"></i><br></a><br>
+				</span>
+				
+				';
+
+			}				
+	?>
 	
   <!-- Nav tabs -->
   <ul class="nav nav-tabs">

@@ -40,8 +40,8 @@ if  (  (isset($_POST['txtUsuario']))  AND  (isset($_POST['txtClave']))      )
 			$cookie_name = "perfil";  $cookie_value =  $perfil;		setcookie($cookie_name, $cookie_value, time() + 3600, "/");	
 			$cookie_name = "correo";  $cookie_value =  $correo;		setcookie($cookie_name, $cookie_value, time() + 3600, "/");	
 
-			if ($perfil == "Agente")	{header("Location:agente.php"); }
-			if ($perfil == "Supervisor")	{header("Location:supervisor.php"); }
+			if ($perfil == "Supervisor")	{header("Location:supervisor.php"); } else	{header("Location:agente.php"); }
+			
 		}
 	else
 		{

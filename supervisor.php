@@ -62,7 +62,7 @@ if ($usuario == "")
 
 
 # ------------------------- Permisos solo a Supervisor --------------------------------
-if ($perfil != "Supervisor")
+if ($perfil == "Agente")
 {
 	echo "<div class=\"warning-box\" align='center'><br><br><br><br><br><br><h2> Usuario No tiene Permisos para este modulo! </h2>  <br> </div>\n";
 	$MensajeValidacion = "Usuario No tiene Permisos para este modulo!";
@@ -189,7 +189,7 @@ $pagina = "supervisor.php";
 				</span>
     </div>
     <div class="col-6">
-		<h1 align='center'> <?php echo $nombre_proyecto; ?> </h1>
+		<h1 align='center'> Supervisor <br> <?php echo $nombre_proyecto; ?> </h1>
     </div>
     <div class="col">
 			<span class="float-center">
@@ -208,7 +208,21 @@ $pagina = "supervisor.php";
 	<span class="float-center">						
 		Autenticado como: <strong> <?php echo $usuario; echo "(".$nombre.")";   ?></strong>  <br><br>
 	</span>
-  
+	<?php
+			if ( ($perfil == "TeamLeader") OR ($perfil == "Supervisor") )
+			{
+				echo '
+				
+				<span class="float-center">						
+				<a href="agente.php"  data-toggle="tooltip" title="Modulo Agentes"> <i class="fa fa-user" style="font-size:24px"></i><br></a><br>
+				</span>
+				
+				';
+
+			}				
+	?>
+
+
   <!----------------------------------- Nav tabs -------------------------------->
   <ul class="nav nav-tabs">
 	
@@ -226,9 +240,7 @@ $pagina = "supervisor.php";
   
 <!-- ********************************TAB pendientes ********************************************  -->  
 	<div id="pendientes" class="container tab-pane active"><br>
-			<?php
-									
-			?>
+			
 		
 	  <!-- -->
 		<div class="container">            
