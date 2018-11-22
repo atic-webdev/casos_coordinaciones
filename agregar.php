@@ -87,19 +87,18 @@ if ( (isset($_GET['txtSocio']))    ) #AND  (isset($_POST['txtTelefonos']))  AND 
 	$resultados_insert = sqlsrv_query($conn_insert , $sql_insert ); 
 	if ($resultados_insert  == FALSE) die(FormatErrors(sqlsrv_errors())); 	//Error handling 
 
-	# envio de correo al agente
-
-	$url = "http://".$servidor."/casos_coord/agente.php";
-	############## Envio del formulario por email  ################
-	header("Content-Type: text/html;charset=utf-8");
-	$asunto = "Nuevo Caso Especial Asignado";
-	
 	$conn_agente = conexion_bd($servidor_bd, $usuario_bd, $password_bd, $basedatos); 
 	$sql_agente = " select teleoperador_user, Teleoperador_Descripcion, teleoperador_email, Teleoperador_Descripcion from Teleoperador where teleoperador_user = '".$_GET['txtAsignado']."'  ";
 	$resultados_agente= sqlsrv_query($conn_agente, $sql_agente); 
 	if ($resultados_agente == FALSE) die(FormatErrors(sqlsrv_errors())); 	//Error handling 
 	$row_agente = sqlsrv_fetch_array($resultados_agente, SQLSRV_FETCH_ASSOC);
 
+	# envio de correo al agente
+
+	$url = "http://".$servidor."/casos_coord/agente.php";
+	############## Envio del formulario por email  ################
+	header("Content-Type: text/html;charset=utf-8");
+	$asunto = "Nuevo Caso Especial Asignado - Socio ".$_GET['txtSocio']." ";	
 
 	$comentarios = "Estimado (a): ".$row_agente['Teleoperador_Descripcion']." <br> Un nuevo caso especial para coordinar ha sido asignado a usted. ";
 	
