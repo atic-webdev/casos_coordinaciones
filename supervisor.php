@@ -93,7 +93,7 @@ if ($perfil != "Supervisor")
 
 # --------------------------Queries-------------------------
 $conn1 = conexion_bd($servidor_bd, $usuario_bd, $password_bd, $basedatos); 
-$sql_asig= " SELECT * FROM   casos_especiales WHERE estado = 'Asignada' ";
+$sql_asig= " SELECT * FROM   casos_especiales WHERE estado != 'Finalizada' ";
 $resultados_asig= sqlsrv_query($conn1, $sql_asig); 
 $row_asig = sqlsrv_fetch_array($resultados_asig, SQLSRV_FETCH_ASSOC);
 
@@ -102,7 +102,17 @@ $conn2 = conexion_bd($servidor_bd, $usuario_bd, $password_bd, $basedatos);
 $sql_final= " SELECT * FROM   casos_especiales WHERE estado = 'Finalizada' ";
 $resultados_final= sqlsrv_query($conn2, $sql_final); 
 $row_final = sqlsrv_fetch_array($resultados_final, SQLSRV_FETCH_ASSOC);
+#############################################################################
+$conn11 = conexion_bd($servidor_bd, $usuario_bd, $password_bd, $basedatos); 
+$sql_asig1= " SELECT * FROM   casos_especiales WHERE estado != 'Finalizada' ";
+$resultados_asig1= sqlsrv_query($conn11, $sql_asig1); 
+$row_asig1 = sqlsrv_fetch_array($resultados_asig1, SQLSRV_FETCH_ASSOC);
 
+
+$conn22 = conexion_bd($servidor_bd, $usuario_bd, $password_bd, $basedatos); 
+$sql_final2= " SELECT * FROM   casos_especiales WHERE estado = 'Finalizada' ";
+$resultados_final2= sqlsrv_query($conn22, $sql_final2); 
+$row_final2 = sqlsrv_fetch_array($resultados_final2, SQLSRV_FETCH_ASSOC);
 # --------------------------Queries End-------------------------
 
 #  --------------------- Refrescar la pagina cada x Min -------------------------
@@ -146,17 +156,14 @@ $pagina = "supervisor.php";
 	});
   </script>
   <!--
-
 <script src="popper/1.14.3/popper.min.js"></script>
-<script src="popper/tooltip/tooltip.js"></script>
-  
+<script src="popper/tooltip/tooltip.js"></script>  
 <script src="https://unpkg.com/popper.js"></script>
 <script src="https://unpkg.com/tooltip.js"></script>
-
-  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css">  
-  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script> 
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js"></script> 
-  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js"></script> 
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css">  
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script> 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js"></script> 
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js"></script> 
   -->
 	<style>
 		#sombra {
@@ -202,7 +209,7 @@ $pagina = "supervisor.php";
 		Autenticado como: <strong> <?php echo $usuario; echo "(".$nombre.")";   ?></strong>  <br><br>
 	</span>
   
-  <!-- Nav tabs -->
+  <!----------------------------------- Nav tabs -------------------------------->
   <ul class="nav nav-tabs">
 	
     <li class="nav-item">
@@ -219,8 +226,10 @@ $pagina = "supervisor.php";
   
 <!-- ********************************TAB pendientes ********************************************  -->  
 	<div id="pendientes" class="container tab-pane active"><br>
-     
-      
+			<?php
+									
+			?>
+		
 	  <!-- -->
 		<div class="container">            
 		  <div class="table-responsive"> 		    
@@ -239,40 +248,58 @@ $pagina = "supervisor.php";
 			</thead>
 			<tbody>	
 				<?php 
-				do
+				// validar si hay registros para mostrar en la pagina
+				$row_asig1 = sqlsrv_has_rows( $resultados_asig1 );
+				if ($row_asig1 === true)			
 				{
-					?>		  
-			  <tr>
-					<td><a href="http://10.7.57.141/SIGA-TG/servlet/entitymanagercliente?DSP,10,<?php echo $row_asig['socio']; ?>,OrdenSrv" target="_blank">
-						<?php echo $row_asig['socio']; ?></a></td>
-					<td><?php echo $row_asig['telefonos']; ?></td>
-					<td><?php echo $row_asig['descripcion']; ?></td>
-					<td><?php echo $row_asig['fecha_agenda']->format('d-M-Y'); ?></td>
-					<td><?php echo $row_asig['fecha_creacion']->format('d-M-Y H:i:s'); ?></td>
-					<td><?php echo $row_asig['agente_asignado']; ?></td>
-					<td><?php echo $row_asig['estado']; ?></td>
-					<td><a href="JavaScript:popup('editar.php?editar=<?php echo $row_asig['id']; ?>',725,550)"  data-toggle="tooltip" title="Editar"><i class="fa fa-edit" style="font-size:32px"></i></a></td>					
-			  </tr>	
-				<?php } while ($row_asig = sqlsrv_fetch_array($resultados_asig, SQLSRV_FETCH_ASSOC)) ?>	  		  
+
+					do
+					{
+						?>					  
+						<tr>
+								<td><a href="http://10.7.57.141/SIGA-TG/servlet/entitymanagercliente?DSP,10,<?php echo $row_asig['socio']; ?>,OrdenSrv" target="_blank">
+									<?php echo $row_asig['socio']; ?></a></td>
+								<td><?php echo $row_asig['telefonos']; ?></td>
+								<td><?php echo $row_asig['descripcion']; ?></td>
+								<td><?php echo $row_asig['fecha_agenda']->format('d-M-Y'); ?></td>
+								<td><?php echo $row_asig['fecha_creacion']->format('d-M-Y H:i:s'); ?></td>
+								<td><?php echo $row_asig['agente_asignado']; ?></td>
+								<td><?php echo $row_asig['estado']; ?></td>
+								<td><a href="JavaScript:popup('editar.php?editar=<?php echo $row_asig['id']; ?>',725,550)"  data-toggle="tooltip" title="Editar"><i class="fa fa-edit" style="font-size:32px"></i></a></td>					
+						</tr>	
+				<?php 
+						} while ($row_asig = sqlsrv_fetch_array($resultados_asig, SQLSRV_FETCH_ASSOC)) ;	
+				} # FIN if  validar si hay registros para mostrar en la pagina
+				else
+				{
+					echo ' <div class="alert alert-warning" role="alert"> No se encuentran Registros de casos <strong>Pendientes</strong>. 	</div> ' ;
+				}			
+						
+				?>	  		  
 			</tbody>
 		 </table>  		
 		 </div> 
-		</div>
+		 <?php		
+				
+			sqlsrv_free_stmt($resultados_asig);  
+			sqlsrv_close( $conn1 );
+			sqlsrv_free_stmt($resultados_asig1);  
+			sqlsrv_close( $conn11 );
+		?>
+		</div>		
 	  <!-- -->	  
 	  <br>
-	  <!-- -->
-	  
+	  <!-- -->	  
     </div>
 	<!-- ******************************** FIN TAB pendientes ********************************************  -->  
-	<?php
-	sqlsrv_free_stmt($resultados_asig);  
-	sqlsrv_close( $conn1 );
-	?>
+	
 	
 <!-- ********************************TAB finalizadas ********************************************  -->  
 <div id="finalizadas" class="container tab-pane "><br>
      
-      
+		<?php
+		 
+		 ?>
 		 <!-- -->
 		 <div class="container">            
 			 <div class="table-responsive"> 		    
@@ -291,6 +318,11 @@ $pagina = "supervisor.php";
 			 </thead>
 			 <tbody>
 			 <?php 
+				# validar si hay registros para mostrar en la pagina
+				$row_final2 = sqlsrv_has_rows( $resultados_final2 );
+				if ($row_final2 == true)			
+				{
+
 				do
 				{
 					?>			  
@@ -306,11 +338,25 @@ $pagina = "supervisor.php";
 					<td> <a href="#" data-toggle="tooltip" data-placement="left" title="<?php echo $row_final['bitacora']; ?>" ><i class="fa fa-sticky-note-o" style="font-size:28px"></i></a></td>		
 
 				 </tr>
-				 <?php } while ($row_final = sqlsrv_fetch_array($resultados_final, SQLSRV_FETCH_ASSOC)) ?>			  		  
+				 <?php } while ($row_final = sqlsrv_fetch_array($resultados_final, SQLSRV_FETCH_ASSOC)); 
+				 } # FIN if  validar si hay registros para mostrar en la pagina
+				 else
+				 {
+					 echo '<div class="alert alert-warning" role="alert">No se encuentran Registros de casos <strong>Finalizados</strong>. </div>';
+				 }	
+				 
+				 ?>			  		  
 			 </tbody>
 			</table>  		
 			</div> 
-		 </div>
+		</div>
+			<?php			
+			sqlsrv_free_stmt($resultados_final);  
+			sqlsrv_close( $conn2 );
+			sqlsrv_free_stmt($resultados_final2);  
+			sqlsrv_close( $conn22 );
+			?>
+		 
 		 <!-- -->	  
 		 <br>
 		 <!-- -->
@@ -318,8 +364,7 @@ $pagina = "supervisor.php";
 		 </div>
 	 <!-- ******************************** FIN TAB finalizadas ********************************************  -->  
 	 <?php
-	sqlsrv_free_stmt($resultados_final);  
-	sqlsrv_close( $conn2 );
+	
 	$url = "http://".$servidor."/casos_coord/agente.php";
 	?>
 

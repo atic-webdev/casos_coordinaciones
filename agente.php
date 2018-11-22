@@ -216,8 +216,8 @@ $pagina = "agente.php";
 		else
 		{
 			echo '
-			<div class="alert alert-info" role="alert">
-				No se encuentran registros asignados a: <strong> '.$nombre .'</strong><br> Consulte con su supervisor o encargado.
+			<div class="alert alert-warning" role="alert">
+				No se encuentran registros asignados a: <strong> '.$nombre .'</strong><br> <u> Consulte con su supervisor o encargado.</u>
 			</div>
 		';
 		}	

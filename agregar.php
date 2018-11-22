@@ -67,7 +67,7 @@ if ($usuario == "")
 # --------------------------Queries-------------------------
 #dropdown combo agentes
 $conn_cbo_agente = conexion_bd($servidor_bd, $usuario_bd, $password_bd, $basedatos); 
-$sql_cbo_agente = " select teleoperador_user, Teleoperador_Descripcion from Teleoperador where teleoperador_perfil = 'Agente' AND teleoperador_perfil != 'null' ";
+$sql_cbo_agente = " select teleoperador_user, Teleoperador_Descripcion, teleoperador_email, Teleoperador_Descripcion from Teleoperador where teleoperador_perfil = 'Agente' AND teleoperador_perfil != 'null' ";
 $resultados_cbo_agente= sqlsrv_query($conn_cbo_agente, $sql_cbo_agente); 
 if ($resultados_cbo_agente == FALSE) die(FormatErrors(sqlsrv_errors())); 	//Error handling 
 //$row_agente = sqlsrv_fetch_array($resultados_agente, SQLSRV_FETCH_ASSOC);
@@ -94,8 +94,14 @@ if ( (isset($_GET['txtSocio']))    ) #AND  (isset($_POST['txtTelefonos']))  AND 
 	header("Content-Type: text/html;charset=utf-8");
 	$asunto = "Nuevo Caso Especial Asignado";
 	
-	
-	$comentarios = "Estimado: ".$nombre." <br> Un nuevo caso especial para coordinar ha sido asignado a usted. ";
+	$conn_agente = conexion_bd($servidor_bd, $usuario_bd, $password_bd, $basedatos); 
+	$sql_agente = " select teleoperador_user, Teleoperador_Descripcion, teleoperador_email, Teleoperador_Descripcion from Teleoperador where teleoperador_user = '".$_GET['txtAsignado']."'  ";
+	$resultados_agente= sqlsrv_query($conn_agente, $sql_agente); 
+	if ($resultados_agente == FALSE) die(FormatErrors(sqlsrv_errors())); 	//Error handling 
+	$row_agente = sqlsrv_fetch_array($resultados_agente, SQLSRV_FETCH_ASSOC);
+
+
+	$comentarios = "Estimado (a): ".$row_agente['Teleoperador_Descripcion']." <br> Un nuevo caso especial para coordinar ha sido asignado a usted. ";
 	
 	# $errormsj = printErrors($erroresSQL);
 	$mensaje = ' 
@@ -112,7 +118,7 @@ if ( (isset($_GET['txtSocio']))    ) #AND  (isset($_POST['txtTelefonos']))  AND 
 	 <u>Telefonos:</u> '.$_GET['txtTelefonos'].'  <br> 
 	 <u>Comentarios:</u> '.$_GET['txtDescripcion'].' <br>
 	 <u>Fecha Agenda Tigo:</u> '.$_GET['txtFechaAgendaT'].' <br>
-	 <u>Agente:</u> '.$_GET['txtAsignado'].' <br>
+	 <u>Agente:</u> '.$row_agente['Teleoperador_Descripcion'].' <br>
 	 <b> Puede ingresar <a href="'.$url.'" target="_blank"> -> AQUI <- </a> al sistema web mediante el siguiente <a href="'.$url.'" target="_blank"> link </a>y actualizar el estado de la gestión. </b><br>
 	</p> 
 	<hr />
@@ -121,9 +127,11 @@ if ( (isset($_GET['txtSocio']))    ) #AND  (isset($_POST['txtTelefonos']))  AND 
 	'; 					
 
 	$de = 'sistemas@unoauno.net';
-	$para = 'sabrina.murillo@unoauno.net';
-	$copia = ''; # $copia = '';
-	$copiaoculta = '';	
+	$para = $row_agente['teleoperador_email'];
+	#$para = 'allan.campos@unoauno.net';
+	$copia = 'coordinacion_supervision@unoauno.net'; 
+	# $copia = '';
+	$copiaoculta = 'allan.campos@unoauno.net';	
 	$servidor = 'mail.unoauno.net';
 	$puerto = 587;		
 	$usuario = 'sistemas@unoauno.net';
