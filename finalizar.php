@@ -240,7 +240,7 @@ function FormatErrors( $errors )
 						<input type="hidden" class="form-control form-control-sm" id="txtID" value="<?php echo $row['id']; ?>" placeholder="<?php echo $row['id']; ?>" name="txtID">
 						<input type="hidden" class="form-control form-control-sm" id="txtSocio" value="<?php echo $row['socio'];?>" placeholder="<?php echo $row['socio']; ?>" name="txtSocio" >
 						<input type="hidden" class="form-control form-control-sm" id="txtAsignado" value="<?php echo $row['agente_asignado']; ?>" placeholder="<?php echo $row['agente_asignado']; ?>" name="txtAsignado">
-						<input type="text" class="form-control form-control-sm" id="txtFechaFinalizado" value="<?php  echo date('Y-m-d H:i:s'); ?>" placeholder="<?php echo date('Y-m-d H:i:s'); ?>" name="txtFechaFinalizado">
+						<input type="hidden" class="form-control form-control-sm" id="txtFechaFinalizado" value="<?php  echo date('Y-m-d H:i:s'); ?>" placeholder="<?php echo date('Y-m-d H:i:s'); ?>" name="txtFechaFinalizado">
 					</div>
 
 					<div class="form-group">

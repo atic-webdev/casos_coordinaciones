@@ -67,7 +67,7 @@ if ($usuario == "")
 # --------------------------Queries-------------------------
 #dropdown combo agentes
 $conn_cbo_agente = conexion_bd($servidor_bd, $usuario_bd, $password_bd, $basedatos); 
-$sql_cbo_agente = " select teleoperador_user, Teleoperador_Descripcion, teleoperador_email, Teleoperador_Descripcion from Teleoperador where teleoperador_perfil = 'Agente' AND teleoperador_perfil != 'null' ";
+$sql_cbo_agente = " select teleoperador_user, Teleoperador_Descripcion, teleoperador_email, Teleoperador_Descripcion from Teleoperador where teleoperador_perfil = 'Agente' OR  teleoperador_perfil = 'TeamLeader' AND teleoperador_perfil != 'null' ";
 $resultados_cbo_agente= sqlsrv_query($conn_cbo_agente, $sql_cbo_agente); 
 if ($resultados_cbo_agente == FALSE) die(FormatErrors(sqlsrv_errors())); 	//Error handling 
 //$row_agente = sqlsrv_fetch_array($resultados_agente, SQLSRV_FETCH_ASSOC);
@@ -290,12 +290,11 @@ function FormatErrors( $errors )
 
 				echo '<br>
 				<div class="alert alert-info ">				
-					Socio:<strong> '.$_GET['txtSocio'].' 
-					</strong><br>Telefonos:<strong> '.$_GET['txtTelefonos'].' 
-					</strong><br> Descripcion:<strong>'.$_GET['txtDescripcion'].'
-					</strong><br>Fecha:<strong> '.$_GET['txtFechaAgendaT'].'
-					</strong><br>Agente: <strong>'.$_GET['txtAsignado'].'
-					.</strong>
+						Socio:<strong> '.$_GET['txtSocio'].' </strong>
+					<br>Telefonos:<strong> '.$_GET['txtTelefonos'].' </strong>
+					<br> Descripcion:<strong>'.$_GET['txtDescripcion'].'</strong>
+					<br>Fecha:<strong> '.$_GET['txtFechaAgendaT'].'</strong>
+					<br>Agente: <strong>'.$_GET['txtAsignado'].'</strong>
 				</div>
 				';
 				# -----------------------  Envio de correo --------------------

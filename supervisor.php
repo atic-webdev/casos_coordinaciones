@@ -99,7 +99,7 @@ $row_asig = sqlsrv_fetch_array($resultados_asig, SQLSRV_FETCH_ASSOC);
 
 
 $conn2 = conexion_bd($servidor_bd, $usuario_bd, $password_bd, $basedatos); 
-$sql_final= " SELECT * FROM   casos_especiales WHERE estado = 'Finalizada' ";
+$sql_final= " SELECT * FROM   casos_especiales WHERE estado = 'Finalizada' AND fecha_finalizado >= (getdate()-1) ";
 $resultados_final= sqlsrv_query($conn2, $sql_final); 
 $row_final = sqlsrv_fetch_array($resultados_final, SQLSRV_FETCH_ASSOC);
 #############################################################################
@@ -110,7 +110,7 @@ $row_asig1 = sqlsrv_fetch_array($resultados_asig1, SQLSRV_FETCH_ASSOC);
 
 
 $conn22 = conexion_bd($servidor_bd, $usuario_bd, $password_bd, $basedatos); 
-$sql_final2= " SELECT * FROM   casos_especiales WHERE estado = 'Finalizada' ";
+$sql_final2= " SELECT * FROM   casos_especiales WHERE estado = 'Finalizada' AND fecha_finalizado >= (getdate()-1)  ";
 $resultados_final2= sqlsrv_query($conn22, $sql_final2); 
 $row_final2 = sqlsrv_fetch_array($resultados_final2, SQLSRV_FETCH_ASSOC);
 # --------------------------Queries End-------------------------
