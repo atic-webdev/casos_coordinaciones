@@ -120,7 +120,7 @@ if ( (isset($_GET['txtID']))    )
 	 <u>Comentarios:</u> '.$_GET['txtDescripcion'].' <br>
 	 <u>Fecha Agenda Tigo:</u> '.$_GET['txtFechaAgendaT'].' <br>
 	 <u>Agente:</u> '.$row_agente['Teleoperador_Descripcion'].' <br>
-	 <u>Fecha Reasignado:</u> '.$row_agente['txtFechaModificado'].' <br>
+	 <u>Fecha Reasignado:</u> '.$_GET['txtFechaModificado'].' <br>
 	 <b> Puede ingresar <a href="'.$url.'" target="_blank"> -> AQUI <- </a> al sistema web mediante el siguiente <a href="'.$url.'" target="_blank"> link </a>y actualizar el estado de la gestión. </b><br>
 	</p> 
 	<hr />
