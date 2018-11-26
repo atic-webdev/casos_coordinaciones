@@ -25,6 +25,7 @@ require('info.php');
 require('class/class.phpmailer.php');
 require('class/class.smtp.php');
 require('class/PHPMailerAutoload.php');
+require('config.php');
 
 //session_start();
 $cookie_u= "usuario";
@@ -125,17 +126,11 @@ if ( (isset($_GET['txtSocio']))    ) #AND  (isset($_POST['txtTelefonos']))  AND 
 	</html> 
 	'; 					
 
-	$de = 'sistemas@unoauno.net';
-	$para = $row_agente['teleoperador_email'];
-	#$para = 'allan.campos@unoauno.net';
+	$de = 'sistemasweb@unoauno.net';
+	$para = $row_agente['teleoperador_email'];	
 	$copia = 'coordinacion_supervision@unoauno.net'; 
-	# $copia = '';
-	$copiaoculta = 'allan.campos@unoauno.net';	
-	$servidor = 'mail.unoauno.net';
-	$puerto = 587;		
-	$usuario = 'sistemas@unoauno.net';
-	$clave = 'soloPARAingresar99';
-	
+	$copiaoculta = '';	
+		
 	$NombreEnvio = "Casos Especiales Coordinaciones";
 	
 	$mail = new PHPMailer();
